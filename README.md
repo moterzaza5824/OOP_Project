@@ -1,139 +1,130 @@
-# OOP_Project
 # Recipe & Ingredient Scaler
 
-ระบบจัดการสูตรอาหารและคำนวณปริมาณวัตถุดิบตามจำนวนเสิร์ฟที่ผู้ใช้ต้องการ
+ระบบจัดการสูตรอาหารและคำนวณปริมาณวัตถุดิบตามจำนวนเสิร์ฟ พัฒนาด้วย React, TypeScript และหลักการ Object-Oriented Programming (OOP) โดยใช้ Builder Pattern สำหรับสร้างสูตรอาหาร
 
-## Project Overview
+## Project Status
 
-โปรเจกต์นี้เป็น Mini Project ที่พัฒนาโดยใช้หลักการ Object-Oriented Programming (OOP) และ Builder Pattern
+> **Current Stage: Person 1 — Architecture / OOP / Builder**
 
-ผู้ใช้สามารถ
+ขณะนี้โปรเจกต์อยู่ในขั้นพัฒนาโครงสร้าง OOP และ Core Model ยังไม่ถึงขั้นพัฒนา GUI หรือ Integration
 
-- สร้างสูตรอาหาร
-- เพิ่มวัตถุดิบ
-- ระบุปริมาณและหน่วยของวัตถุดิบ
-- กำหนดจำนวนเสิร์ฟเริ่มต้น
-- กำหนดจำนวนเสิร์ฟใหม่
-- ให้ระบบคำนวณปริมาณวัตถุดิบใหม่อัตโนมัติ
+### ทำแล้ว
 
-ตัวอย่าง
+- [x] สร้าง GitHub repository
+- [x] ตั้งค่า React + TypeScript + Vite
+- [x] สร้าง base class `Ingredient`
+- [x] สร้าง `SolidIngredient` และ `LiquidIngredient`
+- [x] เพิ่ม validation สำหรับชื่อ ปริมาณ และหน่วย
+- [x] แสดง Encapsulation, Inheritance และ Polymorphism เบื้องต้น
+
+> หมายเหตุ: โค้ด Ingredient ปัจจุบันอยู่ใน branch `dew` และต้อง merge เข้า `main` หลังตรวจสอบเสร็จ
+
+### กำลังทำในขั้น Person 1
+
+- [ ] สร้าง `Recipe`
+- [ ] สร้าง `MainDishRecipe` และ `DessertRecipe`
+- [ ] สร้าง `RecipeBuilder`
+- [ ] ทดลองสร้าง Recipe ผ่าน Builder Pattern
+- [ ] ตรวจให้มี class ที่ออกแบบเองอย่างน้อย 5 class
+- [ ] จัดทำ Class Diagram
+- [ ] Merge งาน Core OOP เข้า `main`
+
+### ขั้นถัดไป
+
+- [ ] Person 2: พัฒนา `RecipeScaler`, validation และ test cases
+- [ ] Person 3: พัฒนา GUI และเชื่อม GUI เข้ากับ Core Logic
+- [ ] เพิ่ม Recipe CRUD: Add / Edit / Delete / View
+- [ ] เพิ่ม Search และ LocalStorage
+- [ ] Integration Testing และแก้บั๊ก
+- [ ] เตรียม README, Class Diagram, Presentation และ Demo
+
+## Core Features
+
+- สร้างและจัดการสูตรอาหาร
+- เพิ่มวัตถุดิบพร้อมปริมาณและหน่วย
+- ระบุจำนวนเสิร์ฟเริ่มต้นและจำนวนเสิร์ฟเป้าหมาย
+- คำนวณปริมาณวัตถุดิบตามจำนวนเสิร์ฟใหม่
+- เพิ่ม แก้ไข ลบ ดู และค้นหาสูตรอาหารผ่าน GUI
+- บันทึกข้อมูลด้วย LocalStorage
+
+ตัวอย่างการคำนวณ:
 
 ```text
 Original Servings: 2
+Target Servings:   6
+Scale Factor:      6 / 2 = 3
 
-Egg    2 pcs
-Flour  200 g
-Milk   300 ml
+Pork:       200 g  -> 600 g
+Fish Sauce:  10 ml ->  30 ml
 ```
 
-เมื่อเปลี่ยนเป็น 4 servings
+## OOP Design
 
-```text
-Egg    4 pcs
-Flour  400 g
-Milk   600 ml
-```
-
-## Objectives
-
-- ฝึกการออกแบบโปรแกรมด้วย OOP
-- ประยุกต์ใช้ Builder Pattern
-- แยก Core Logic ออกจาก UI
-- พัฒนาเว็บแอปที่ใช้งานได้จริง
-- ฝึกการทำงานร่วมกันผ่าน Git และ GitHub
-
-## Technology Stack
-
-- TypeScript
-- React
-- Vite
-- CSS
-- Git
-- GitHub
-- Visual Studio Code
-
-## Main System Flow
-
-```text
-User Input
-↓
-RecipeBuilder
-↓
-Recipe
-↓
-RecipeScaler
-↓
-Scaled Recipe
-↓
-Display Result
-```
-
-## Main Classes
+โครงสร้าง class ที่วางแผนไว้:
 
 ```text
 Ingredient
-├── name
-├── quantity
-└── unit
+├── SolidIngredient
+└── LiquidIngredient
 
 Recipe
-├── name
-├── servings
-└── ingredients[]
+├── MainDishRecipe
+└── DessertRecipe
 
 RecipeBuilder
-├── setName()
-├── setServings()
-├── addIngredient()
-└── build()
-
 RecipeScaler
-└── scale()
+RecipeManager
+RecipeStorage
+```
+
+หลักการ OOP ที่ใช้:
+
+- **Encapsulation:** ป้องกันการแก้ไขข้อมูลภายในโดยตรง และเข้าถึงผ่าน method
+- **Inheritance:** class ลูกสืบทอดคุณสมบัติและพฤติกรรมจาก base class
+- **Polymorphism:** class ลูก override method และถูกใช้งานผ่านชนิดของ base class
+- **Abstraction:** แยกความรับผิดชอบของ Model, Builder, Service, Storage และ UI
+- **Builder Pattern:** สร้าง Recipe ทีละส่วนแทน constructor ที่มี parameter จำนวนมาก
+
+ตัวอย่างเป้าหมายการใช้งาน Builder:
+
+```ts
+const recipe = new RecipeBuilder()
+  .setName("Pad Kra Pao")
+  .setServings(2)
+  .addIngredient(new SolidIngredient("Pork", 200, "g"))
+  .addIngredient(new LiquidIngredient("Fish Sauce", 10, "ml"))
+  .build()
 ```
 
 ## Team Roles
 
-### Person 1 — Core Developer
+### Person 1 — Architecture / OOP / Builder Developer
 
-รับผิดชอบ
+- ออกแบบ Architecture และ Class Diagram
+- พัฒนา `Recipe` และประเภทของ Recipe
+- พัฒนา `RecipeBuilder`
+- ดูแล Inheritance, Polymorphism และ Builder Pattern
+- เตรียมคำอธิบายโครงสร้าง OOP สำหรับการนำเสนอ
 
-- OOP
-- Core Logic
-- Ingredient
-- Recipe
-- RecipeBuilder
-- RecipeScaler
-- Validation
-- Builder Pattern
+### Person 2 — Logic Developer / Tester
 
-### Person 2 — Integration / Support / Documentation
+- พัฒนาและตรวจสอบ `Ingredient`
+- พัฒนา `RecipeScaler`
+- เขียนสูตรคำนวณ Scaling
+- ดูแล validation และ edge cases
+- สร้าง test cases และตรวจสอบความถูกต้องของระบบ
 
-รับผิดชอบ
+### Person 3 — Frontend Developer / UX/UI
 
-- GitHub Repository
-- Integration
-- Manual Testing
-- Bug Tracking
-- README
-- Documentation
-- Diagram
-- ช่วยงานส่วนที่ติดขัด
+- พัฒนา GUI ด้วย React
+- ทำฟอร์ม Recipe และ Ingredient
+- พัฒนา Recipe List, Search และ CRUD
+- เชื่อม UI เข้ากับ Builder และ Scaler
+- ดูแล LocalStorage และปรับปรุง UX/UI
 
-### Person 3 — Frontend / UI Developer
+สมาชิกทุกคนต้องมี commit ของตนเองและช่วยกันทำ Integration และ Testing
 
-รับผิดชอบ
-
-- React
-- User Interface
-- Form
-- Components
-- CSS
-- แสดงผลลัพธ์
-- เชื่อม UI กับ Core Logic
-
-## Project Structure
-
-โครงสร้างเบื้องต้นที่วางไว้
+## Planned Project Structure
 
 ```text
 src/
@@ -141,95 +132,63 @@ src/
 │   ├── RecipeForm.tsx
 │   ├── IngredientForm.tsx
 │   ├── IngredientList.tsx
+│   ├── RecipeList.tsx
 │   └── RecipeResult.tsx
-│
 ├── core/
 │   ├── models/
 │   │   ├── Ingredient.ts
-│   │   └── Recipe.ts
-│   │
+│   │   ├── SolidIngredient.ts
+│   │   ├── LiquidIngredient.ts
+│   │   ├── Recipe.ts
+│   │   ├── MainDishRecipe.ts
+│   │   └── DessertRecipe.ts
 │   ├── builders/
 │   │   └── RecipeBuilder.ts
-│   │
 │   └── services/
-│       └── RecipeScaler.ts
-│
+│       ├── RecipeScaler.ts
+│       └── RecipeManager.ts
+├── storage/
+│   └── RecipeStorage.ts
 ├── App.tsx
 └── main.tsx
 ```
 
-โครงสร้างนี้สามารถปรับได้ตามการพัฒนาจริง
+## Technology Stack
 
-## Current Status
-
-- [x] Create GitHub Repository
-- [ ] Create React + TypeScript project
-- [ ] Create project structure
-- [ ] Implement Ingredient
-- [ ] Implement Recipe
-- [ ] Implement RecipeBuilder
-- [ ] Implement RecipeScaler
-- [ ] Create UI
-- [ ] Connect UI with Core Logic
-- [ ] Manual Testing
-- [ ] Fix Bugs
-- [ ] Final Documentation
+- TypeScript
+- React
+- Vite
+- CSS
+- LocalStorage
+- Git and GitHub
 
 ## How to Run
-
-หลังจากสร้าง React Project แล้ว ใช้คำสั่ง
 
 ```bash
 npm install
 npm run dev
 ```
 
-จากนั้นเปิด URL ที่ Vite แสดงใน Terminal
+เปิด URL ที่ Vite แสดงใน Terminal
 
-## Project Scope
+ตรวจสอบคุณภาพโค้ดและ production build:
 
-ฟีเจอร์หลักที่ต้องมี
-
-- Create Recipe
-- Add Ingredients
-- Original Servings
-- Target Servings
-- Scale Ingredient Quantity
-- Display Result
-- Basic Validation
-- OOP
-- Builder Pattern
-
-ฟีเจอร์ที่ยังไม่จำเป็น
-
-- Login
-- Register
-- Database
-- Backend API
-- Payment
-- AI
-- Automated Testing
-
-## Development Workflow
-
-```text
-Person 2
-Create Repository
-↓
-Person 1
-Setup Project + Core Logic
-↓
-Person 3
-Create UI
-↓
-Connect UI + Core
-↓
-Person 2
-Check Integration + Manual Test
-↓
-Fix Bugs
-↓
-Final Review
-↓
-Submit
+```bash
+npm run lint
+npm run build
 ```
+
+## Definition of Done
+
+โปรเจกต์ถือว่าเสร็จเมื่อ:
+
+- [ ] Recipe CRUD ใช้งานได้ผ่าน GUI
+- [ ] เพิ่ม Ingredient และ Scale ปริมาณได้ถูกต้อง
+- [ ] Search และ LocalStorage ใช้งานได้
+- [ ] มี class ที่ออกแบบเองอย่างน้อย 5 class
+- [ ] แสดง Encapsulation, Inheritance และ Polymorphism ชัดเจน
+- [ ] ใช้ Builder Pattern จริงใน Application Flow
+- [ ] ผ่าน validation และ test cases หลัก
+- [ ] มี Class Diagram และ README ที่ตรงกับโค้ดจริง
+- [ ] สมาชิกทั้ง 3 คนมี meaningful commits
+- [ ] Demo ได้โดยไม่มี error
