@@ -1,121 +1,190 @@
-import { useState } from 'react'
-import heroImg from './assets/hero.png'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
+import { useEffect, useState } from 'react'
+import { Header } from './components/Header'
+import { RecipeCard } from './components/RecipeCard'
+import {
+  RecipeForm,
+  type RecipeDraft,
+} from './components/RecipeForm'
+import { ScaleModal } from './components/ScaleModal'
+import { RecipeBuilder } from './core/builders/RecipeBuilder'
+import { SolidIngredient } from './core/models/Solidingredient'
+import { LiquidIngredient } from './core/models/Liquidingredient'
+import type { Recipe } from './core/models/Recipe'
 import './App.css'
+import {
+  loadRecipes,
+  saveRecipes,
+} from './storage/recipeStorage'
+import { DeleteConfirmModal } from './components/DeleteConfirmModal'
 
 function App() {
-  const [count, setCount] = useState(0)
+  const [isCreateFormOpen, setIsCreateFormOpen] = useState(false)
+  const [recipes, setRecipes] = useState<Recipe[]>(
+    () => loadRecipes(),
+  )
+  const [statusMessage, setStatusMessage] = useState('')
+  const [recipeToScale, setRecipeToScale] = useState<Recipe | null>(null)
+  const [recipeToEdit, setRecipeToEdit] = useState<Recipe | null>(null)
+  useEffect(() => {
+    saveRecipes(recipes)
+  }, [recipes])
+  const [recipeToDelete, setRecipeToDelete] =
+    useState<Recipe | null>(null)
+
+  function handleSaveRecipe(draft: RecipeDraft) {
+    try {
+      const builder = new RecipeBuilder()
+        .setName(draft.name)
+        .setServings(draft.servings)
+
+      for (const ingredient of draft.ingredients) {
+        const recipeIngredient =
+          ingredient.type === 'solid'
+            ? new SolidIngredient(
+              ingredient.name,
+              ingredient.quantity,
+              ingredient.unit,
+            )
+            : new LiquidIngredient(
+              ingredient.name,
+              ingredient.quantity,
+              ingredient.unit,
+            )
+
+        builder.addIngredient(recipeIngredient)
+      }
+
+      const recipe = builder.build()
+      const isEditing = recipeToEdit !== null
+
+      setRecipes((current) =>
+        isEditing
+          ? current.map((currentRecipe) =>
+            currentRecipe === recipeToEdit
+              ? recipe
+              : currentRecipe,
+          )
+          : [...current, recipe],
+      )
+
+      setIsCreateFormOpen(false)
+      setRecipeToEdit(null)
+
+      setStatusMessage(
+        isEditing
+          ? `แก้ไขสูตร “${recipe.getName()}” เรียบร้อยแล้ว`
+          : `บันทึกสูตร “${recipe.getName()}” เรียบร้อยแล้ว`,
+      )
+    } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : 'ไม่สามารถบันทึกสูตรอาหารได้'
+
+      setStatusMessage(message)
+    }
+  }
+
+  function handleDeleteRecipe(recipeToDelete: Recipe) {
+    setRecipes((current) =>
+      current.filter((recipe) => recipe !== recipeToDelete),
+    )
+    setStatusMessage(`ลบสูตร “${recipeToDelete.getName()}” เรียบร้อยแล้ว`)
+  }
 
   return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.tsx</code> and save to test <code>HMR</code>
+    <div className="app">
+      <Header
+        onCreateRecipe={() => {
+          setRecipeToEdit(null)
+          setIsCreateFormOpen(true)
+          setStatusMessage('')
+        }}
+      />
+
+      <main className="app-main">
+        <section className="hero-section">
+          <p className="hero-section__eyebrow">
+            ระบบคำนวณสัดส่วนวัตถุดิบทำอาหารอัจฉริยะ
           </p>
-        </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
 
-      <div className="ticks"></div>
+          <h1>วันนี้กินกี่คน?</h1>
 
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
+          <p>
+            บันทึกสูตรโปรด แล้วปรับวัตถุดิบให้พอดีกับทุกมื้อ
+            ไม่ต้องกะด้วยความรู้สึก พร้อมคำนวณอัตราส่วนอัตโนมัติ
+          </p>
+        </section>
 
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
+        {statusMessage && (
+          <p className="status-message" role="status">
+            {statusMessage}
+          </p>
+        )}
+
+        {isCreateFormOpen && (
+          <RecipeForm
+            key={
+              recipeToEdit
+                ? `edit-${recipes.indexOf(recipeToEdit)}`
+                : 'create'
+            }
+            initialRecipe={recipeToEdit ?? undefined}
+            onCancel={() => {
+              setIsCreateFormOpen(false)
+              setRecipeToEdit(null)
+            }}
+            onSave={handleSaveRecipe}
+          />
+        )}
+
+        <section id="recipes">
+          <div className="section-heading">
+            <h2>สูตรอาหารของฉัน</h2>
+            <span>{recipes.length}</span>
+          </div>
+
+          {recipes.length === 0 ? (
+            <div className="empty-state">
+              <p>ยังไม่มีสูตรอาหาร</p>
+              <span>กด “+ สร้างสูตรใหม่” เพื่อเพิ่มสูตรแรกของคุณ</span>
+            </div>
+          ) : (
+            <div className="recipe-grid">
+              {recipes.map((recipe, index) => (
+                <RecipeCard
+                  key={`${recipe.getName()}-${index}`}
+                  recipe={recipe}
+                  onEdit={() => {
+                    setRecipeToEdit(recipe)
+                    setIsCreateFormOpen(true)
+                    setStatusMessage('')
+                  }}
+                  onDelete={() => setRecipeToDelete(recipe)}
+                  onScale={() => setRecipeToScale(recipe)}
+                />
+              ))}
+            </div>
+          )}
+        </section>
+      </main>
+      {recipeToScale && (
+        <ScaleModal
+          recipe={recipeToScale}
+          onClose={() => setRecipeToScale(null)}
+        />
+      )}
+      {recipeToDelete && (
+        <DeleteConfirmModal
+          recipeName={recipeToDelete.getName()}
+          onCancel={() => setRecipeToDelete(null)}
+          onConfirm={() => {
+            handleDeleteRecipe(recipeToDelete)
+            setRecipeToDelete(null)
+          }}
+        />
+      )}
+    </div>
   )
 }
 
