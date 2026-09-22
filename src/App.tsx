@@ -22,6 +22,7 @@ function App() {
   const [recipes, setRecipes] = useState<Recipe[]>(
     () => loadRecipes(),
   )
+  const [searchTerm, setSearchTerm] = useState('')
   const [statusMessage, setStatusMessage] = useState('')
   const [recipeToScale, setRecipeToScale] = useState<Recipe | null>(null)
   const [recipeToEdit, setRecipeToEdit] = useState<Recipe | null>(null)
@@ -92,6 +93,13 @@ function App() {
     setStatusMessage(`ลบสูตร “${recipeToDelete.getName()}” เรียบร้อยแล้ว`)
   }
 
+  const filteredRecipes = recipes.filter((recipe) =>
+    recipe
+      .getName()
+      .toLocaleLowerCase('th-TH')
+      .includes(searchTerm.trim().toLocaleLowerCase('th-TH')),
+  )
+
   return (
     <div className="app">
       <Header
@@ -142,6 +150,15 @@ function App() {
           <div className="section-heading">
             <h2>สูตรอาหารของฉัน</h2>
             <span>{recipes.length}</span>
+
+            <input
+              className="recipe-search"
+              type="search"
+              value={searchTerm}
+              onChange={(event) => setSearchTerm(event.target.value)}
+              placeholder="ค้นหาชื่อสูตรอาหาร..."
+              aria-label="ค้นหาชื่อสูตรอาหาร"
+            />
           </div>
 
           {recipes.length === 0 ? (
@@ -149,9 +166,14 @@ function App() {
               <p>ยังไม่มีสูตรอาหาร</p>
               <span>กด “+ สร้างสูตรใหม่” เพื่อเพิ่มสูตรแรกของคุณ</span>
             </div>
+          ) : filteredRecipes.length === 0 ? (
+            <div className="empty-state">
+              <p>ไม่พบสูตรอาหารที่ค้นหา</p>
+              <span>ลองค้นหาด้วยชื่อสูตรอื่น</span>
+            </div>
           ) : (
             <div className="recipe-grid">
-              {recipes.map((recipe, index) => (
+              {filteredRecipes.map((recipe, index) => (
                 <RecipeCard
                   key={`${recipe.getName()}-${index}`}
                   recipe={recipe}
