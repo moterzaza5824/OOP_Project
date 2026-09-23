@@ -17,12 +17,15 @@ import {
 } from './storage/recipeStorage'
 import { DeleteConfirmModal } from './components/DeleteConfirmModal'
 
+type SortOption = 'latest' | 'name' | 'servings'
+
 function App() {
   const [isCreateFormOpen, setIsCreateFormOpen] = useState(false)
   const [recipes, setRecipes] = useState<Recipe[]>(
     () => loadRecipes(),
   )
   const [searchTerm, setSearchTerm] = useState('')
+  const [sortOption, setSortOption] = useState<SortOption>('latest')
   const [statusMessage, setStatusMessage] = useState('')
   const [recipeToScale, setRecipeToScale] = useState<Recipe | null>(null)
   const [recipeToEdit, setRecipeToEdit] = useState<Recipe | null>(null)
@@ -100,6 +103,18 @@ function App() {
       .includes(searchTerm.trim().toLocaleLowerCase('th-TH')),
   )
 
+  const sortedRecipes = [...filteredRecipes].sort((first, second) => {
+    if (sortOption === 'name') {
+      return first.getName().localeCompare(second.getName(), 'th')
+    }
+
+    if (sortOption === 'servings') {
+      return first.getServings() - second.getServings()
+    }
+
+    return recipes.indexOf(second) - recipes.indexOf(first)
+  })
+
   return (
     <div className="app">
       <Header
@@ -159,6 +174,19 @@ function App() {
               placeholder="ค้นหาชื่อสูตรอาหาร..."
               aria-label="ค้นหาชื่อสูตรอาหาร"
             />
+            <label className="recipe-sort">
+              เรียงตาม
+              <select
+                value={sortOption}
+                onChange={(event) =>
+                  setSortOption(event.target.value as SortOption)
+                }
+              >
+                <option value="latest">ล่าสุด</option>
+                <option value="name">ชื่อ ก–ฮ</option>
+                <option value="servings">จำนวนเสิร์ฟน้อยไปมาก</option>
+              </select>
+            </label>
           </div>
 
           {recipes.length === 0 ? (
@@ -173,7 +201,7 @@ function App() {
             </div>
           ) : (
             <div className="recipe-grid">
-              {filteredRecipes.map((recipe, index) => (
+              {sortedRecipes.map((recipe, index) => (
                 <RecipeCard
                   key={`${recipe.getName()}-${index}`}
                   recipe={recipe}
