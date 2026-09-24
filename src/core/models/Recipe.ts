@@ -22,7 +22,9 @@ export class Recipe {
   constructor(name: string, servings: number, ingredients: Ingredient[]) {
     this.name = name;
     this.servings = servings;
-    this.ingredients = [...ingredients]; // defensive copy on the way in
+    this.ingredients = ingredients.map((ingredient) =>
+      ingredient.withScaledQuantity(1)
+    );
   }
 
   public getName(): string {
@@ -34,12 +36,13 @@ export class Recipe {
   }
 
   /**
-   * Returns a COPY of the ingredients array — not the real one — so
-   * outside code can't push/splice/mutate the Recipe's internal list
-   * without going through RecipeBuilder.
+   * Returns copies of both the array and its Ingredient objects so outside
+   * code cannot mutate the Recipe's internal data through setQuantity().
    */
   public getIngredients(): Ingredient[] {
-    return [...this.ingredients];
+    return this.ingredients.map((ingredient) =>
+      ingredient.withScaledQuantity(1)
+    );
   }
 
   /** Human-readable summary; uses each ingredient's own getDisplayText()
