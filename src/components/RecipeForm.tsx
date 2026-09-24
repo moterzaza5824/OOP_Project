@@ -22,6 +22,18 @@ type RecipeFormProps = {
     onSave: (recipe: RecipeDraft) => void
 }
 
+const INGREDIENT_UNITS = [
+    'กรัม',
+    'กิโลกรัม',
+    'มิลลิลิตร',
+    'ลิตร',
+    'ชิ้น',
+    'ฟอง',
+    'ช้อนชา',
+    'ช้อนโต๊ะ',
+    'ถ้วย',
+]
+
 function createIngredientDrafts(
     recipe?: Recipe,
 ): IngredientDraft[] {
@@ -96,6 +108,20 @@ export function RecipeForm({
         )
     }
 
+    function updateIngredient(
+        id: string,
+        updates: Partial<Omit<IngredientDraft, 'id'>>,
+    ) {
+        setIngredients((current) =>
+            current.map((ingredient) =>
+                ingredient.id === id
+                    ? { ...ingredient, ...updates }
+                    : ingredient,
+            ),
+        )
+        setError('')
+    }
+
     function handleSubmit(event: FormEvent<HTMLFormElement>) {
         event.preventDefault()
 
@@ -111,6 +137,22 @@ export function RecipeForm({
 
         if (ingredients.length === 0) {
             setError('กรุณาเพิ่มวัตถุดิบอย่างน้อย 1 รายการ')
+            return
+        }
+
+        if (ingredients.some((ingredient) => !ingredient.name.trim())) {
+            setError('ชื่อวัตถุดิบห้ามว่าง')
+            return
+        }
+
+        if (
+            ingredients.some(
+                (ingredient) =>
+                    !Number.isFinite(ingredient.quantity) ||
+                    ingredient.quantity <= 0,
+            )
+        ) {
+            setError('ปริมาณวัตถุดิบต้องมากกว่า 0')
             return
         }
 
@@ -211,15 +253,11 @@ export function RecipeForm({
                                     value={unit}
                                     onChange={(event) => setUnit(event.target.value)}
                                 >
-                                    <option value="กรัม">กรัม</option>
-                                    <option value="กิโลกรัม">กิโลกรัม</option>
-                                    <option value="มิลลิลิตร">มิลลิลิตร</option>
-                                    <option value="ลิตร">ลิตร</option>
-                                    <option value="ชิ้น">ชิ้น</option>
-                                    <option value="ฟอง">ฟอง</option>
-                                    <option value="ช้อนชา">ช้อนชา</option>
-                                    <option value="ช้อนโต๊ะ">ช้อนโต๊ะ</option>
-                                    <option value="ถ้วย">ถ้วย</option>
+                                    {INGREDIENT_UNITS.map((ingredientUnit) => (
+                                        <option key={ingredientUnit} value={ingredientUnit}>
+                                            {ingredientUnit}
+                                        </option>
+                                    ))}
                                 </select>
                             </div>
                         </div>
@@ -263,20 +301,96 @@ export function RecipeForm({
                         <ol>
                             {ingredients.map((ingredient) => (
                                 <li key={ingredient.id}>
-                                    <div>
-                                        <strong>{ingredient.name}</strong>
-                                        <span>
-                                            {ingredient.quantity} {ingredient.unit}
-                                        </span>
+                                    <div className="ingredient-preview__fields">
+                                        <label>
+                                            <span>ชื่อ</span>
+                                            <input
+                                                type="text"
+                                                value={ingredient.name}
+                                                aria-label={`ชื่อวัตถุดิบ ${ingredient.name}`}
+                                                onChange={(event) =>
+                                                    updateIngredient(ingredient.id, {
+                                                        name: event.target.value,
+                                                    })
+                                                }
+                                            />
+                                        </label>
+
+                                        <label>
+                                            <span>ปริมาณ</span>
+                                            <input
+                                                type="number"
+                                                min="0"
+                                                step="any"
+                                                value={ingredient.quantity || ''}
+                                                aria-label={`ปริมาณ ${ingredient.name}`}
+                                                onChange={(event) =>
+                                                    updateIngredient(ingredient.id, {
+                                                        quantity: Number(event.target.value),
+                                                    })
+                                                }
+                                            />
+                                        </label>
+
+                                        <label>
+                                            <span>หน่วย</span>
+                                            <select
+                                                value={ingredient.unit}
+                                                aria-label={`หน่วยของ ${ingredient.name}`}
+                                                onChange={(event) =>
+                                                    updateIngredient(ingredient.id, {
+                                                        unit: event.target.value,
+                                                    })
+                                                }
+                                            >
+                                                {INGREDIENT_UNITS.map((ingredientUnit) => (
+                                                    <option key={ingredientUnit} value={ingredientUnit}>
+                                                        {ingredientUnit}
+                                                    </option>
+                                                ))}
+                                            </select>
+                                        </label>
                                     </div>
 
-                                    <button
-                                        type="button"
-                                        aria-label={`ลบ ${ingredient.name}`}
-                                        onClick={() => removeIngredient(ingredient.id)}
-                                    >
-                                        ลบ
-                                    </button>
+                                    <div className="ingredient-preview__actions">
+                                        <div className="ingredient-type">
+                                            <label>
+                                                <input
+                                                    type="radio"
+                                                    name={`ingredient-type-${ingredient.id}`}
+                                                    checked={ingredient.type === 'solid'}
+                                                    onChange={() =>
+                                                        updateIngredient(ingredient.id, {
+                                                            type: 'solid',
+                                                        })
+                                                    }
+                                                />
+                                                ของแข็ง
+                                            </label>
+
+                                            <label>
+                                                <input
+                                                    type="radio"
+                                                    name={`ingredient-type-${ingredient.id}`}
+                                                    checked={ingredient.type === 'liquid'}
+                                                    onChange={() =>
+                                                        updateIngredient(ingredient.id, {
+                                                            type: 'liquid',
+                                                        })
+                                                    }
+                                                />
+                                                ของเหลว
+                                            </label>
+                                        </div>
+
+                                        <button
+                                            type="button"
+                                            aria-label={`ลบ ${ingredient.name}`}
+                                            onClick={() => removeIngredient(ingredient.id)}
+                                        >
+                                            ลบ
+                                        </button>
+                                    </div>
                                 </li>
                             ))}
                         </ol>
