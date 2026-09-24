@@ -6,7 +6,7 @@ type HeaderProps = {
 
 export function Header({ onCreateRecipe }: HeaderProps) {
   return (
-    <header id="top" className="site-header">
+    <header className="site-header">
       <div className="site-header__content">
         <a className="site-header__brand" href="#top">
           <img src={logo} alt="KIN KEE KON" />

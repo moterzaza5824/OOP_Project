@@ -116,7 +116,7 @@ function App() {
   })
 
   return (
-    <div className="app">
+    <div id="top" className="app">
       <Header
         onCreateRecipe={() => {
           setRecipeToEdit(null)
