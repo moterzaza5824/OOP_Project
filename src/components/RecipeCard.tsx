@@ -67,13 +67,15 @@ export function RecipeCard({
         <p className="recipe-card__more">และอีก {remainingCount} รายการ</p>
       )}
 
-      <button
-        type="button"
-        className="recipe-card__scale-button"
-        onClick={onScale}
-      >
-        ปรับจำนวน
-      </button>
+      <div className="recipe-card__footer">
+        <button
+          type="button"
+          className="recipe-card__scale-button"
+          onClick={onScale}
+        >
+          ปรับจำนวน
+        </button>
+      </div>
     </article>
   )
 }

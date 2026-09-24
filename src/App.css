@@ -677,10 +677,14 @@
   font-size: 12px;
 }
 
+.recipe-card__footer {
+  margin-top: auto;
+  padding-top: 18px;
+}
+
 .recipe-card__scale-button {
   width: 100%;
   min-height: 42px;
-  margin-top: 18px;
   color: var(--color-primary);
   background: var(--color-soft-green);
   border: 0;
