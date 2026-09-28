@@ -72,6 +72,10 @@ describe('IngredientFactory', () => {
     )
     expect(IngredientFactory.getTypeForUnit('ช้อนโต๊ะ')).toBe('volume')
     expect(IngredientFactory.getTypeForUnit('ลูก')).toBe('count')
+    expect(IngredientFactory.getTypeForUnit('ตัว')).toBe('count')
+    expect(IngredientFactory.create('ปลาดุก', 2, 'ตัว')).toBeInstanceOf(
+      CountIngredient,
+    )
   })
 
   it('rejects unsupported units instead of silently choosing a type', () => {

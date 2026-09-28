@@ -14,6 +14,7 @@ export const INGREDIENT_UNITS = [
   'ชิ้น',
   'ฟอง',
   'ลูก',
+  'ตัว',
 ] as const
 
 export type IngredientUnit = (typeof INGREDIENT_UNITS)[number]
@@ -29,6 +30,7 @@ const UNIT_TYPES: Record<IngredientUnit, IngredientType> = {
   'ชิ้น': 'count',
   'ฟอง': 'count',
   'ลูก': 'count',
+  'ตัว': 'count',
 }
 
 export function isIngredientUnit(unit: string): unit is IngredientUnit {
