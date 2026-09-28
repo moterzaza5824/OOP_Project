@@ -1,58 +1,71 @@
-import { Ingredient } from "./Ingredient";
+import { Ingredient } from './Ingredient'
 
 /**
  * Recipe
  * ------
- * @internal Should only be constructed via RecipeBuilder.build() — that's
- * the Builder Pattern requirement of the project (see RecipeBuilder.ts).
- * By the time you HAVE a Recipe object, it's guaranteed valid because
- * RecipeBuilder already checked everything before calling this
- * constructor.
+ * สร้างผ่าน RecipeBuilder.build() เป็นหลัก แต่ constructor ตรวจข้อมูลซ้ำเอง
+ * (defensive) เพราะ TypeScript ไม่มี package-private — จึงไม่ปล่อยให้ Recipe
+ * ที่ไม่ถูกต้องเกิดขึ้นได้แม้มีคนเรียก `new Recipe()` ตรง ๆ
  *
- * Fields are declared explicitly (not via constructor parameter-property
- * shorthand) so this compiles cleanly under Vite's newer
- * `erasableSyntaxOnly` TypeScript setting, which some project templates
- * enable by default.
+ * เพิ่ม id / createdAt เพื่อให้ RecipeManager อ้างอิงสูตรด้วย id
+ * แทนการเทียบ object reference และใช้เรียง "ล่าสุด" ได้ตรงไปตรงมา
  */
 export class Recipe {
-  private name: string;
-  private servings: number;
-  private ingredients: Ingredient[];
+  private readonly id: string
+  private readonly createdAt: number
+  private readonly name: string
+  private readonly servings: number
+  private readonly ingredients: Ingredient[]
 
-  constructor(name: string, servings: number, ingredients: Ingredient[]) {
-    this.name = name;
-    this.servings = servings;
-    this.ingredients = ingredients.map((ingredient) =>
-      ingredient.withScaledQuantity(1)
-    );
+  constructor(
+    name: string,
+    servings: number,
+    ingredients: Ingredient[],
+    id: string = crypto.randomUUID(),
+    createdAt: number = Date.now(),
+  ) {
+    if (!name || name.trim().length === 0) {
+      throw new Error('Recipe name must not be empty.')
+    }
+    if (!Number.isFinite(servings) || servings <= 0) {
+      throw new Error(`Servings must be greater than 0 (got: ${servings}).`)
+    }
+    if (ingredients.length === 0) {
+      throw new Error('Recipe must have at least one ingredient.')
+    }
+    this.id = id
+    this.createdAt = createdAt
+    this.name = name.trim()
+    this.servings = servings
+    this.ingredients = ingredients.map((i) => i.clone())
+  }
+
+  public getId(): string {
+    return this.id
+  }
+
+  public getCreatedAt(): number {
+    return this.createdAt
   }
 
   public getName(): string {
-    return this.name;
+    return this.name
   }
 
   public getServings(): number {
-    return this.servings;
+    return this.servings
   }
 
-  /**
-   * Returns copies of both the array and its Ingredient objects so outside
-   * code cannot mutate the Recipe's internal data through setQuantity().
-   */
+  /** คืนสำเนา เพื่อไม่ให้ภายนอกแก้ข้อมูลภายใน Recipe ผ่าน setQuantity() */
   public getIngredients(): Ingredient[] {
-    return this.ingredients.map((ingredient) =>
-      ingredient.withScaledQuantity(1)
-    );
+    return this.ingredients.map((i) => i.clone())
   }
 
-  /** Human-readable summary; uses each ingredient's own getDisplayText()
-   *  (polymorphic — Solid/Liquid ingredients print their own label). */
   public describe(): string {
-    const lines = [
+    return [
       this.name,
       `Servings: ${this.servings}`,
       ...this.ingredients.map((i) => `  ${i.getDisplayText()}`),
-    ];
-    return lines.join("\n");
+    ].join('\n')
   }
 }

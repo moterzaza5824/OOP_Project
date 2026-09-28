@@ -1,48 +1,30 @@
-import { Recipe } from "../models/Recipe";
-import { RecipeBuilder } from "../builders/RecipeBuilder";
+import type { Recipe } from '../models/Recipe'
+import { RecipeBuilder } from '../builders/RecipeBuilder'
 
 /**
- * RecipeScaler
- * ------------
- * Single Responsibility: turn an existing Recipe into a new Recipe scaled
- * to a target number of servings. Does not mutate the Recipe passed in.
+ * RecipeScaler — ปรับสูตรเป็นจำนวนเสิร์ฟใหม่ โดยไม่แก้ Recipe เดิม
  *
- * Formula:
- *     scaleFactor  = targetServings / originalServings
- *     newQuantity  = originalQuantity × scaleFactor
+ *   scaleFactor = targetServings / originalServings
+ *   newQuantity = originalQuantity × scaleFactor
  *
- * Reuses RecipeBuilder to assemble the result (composition) instead of
- * calling `new Recipe(...)` directly, so the scaled Recipe goes through
- * the exact same construction/validation path as any hand-built Recipe.
- *
- * Notice this method never checks `instanceof SolidIngredient` or
- * `instanceof LiquidIngredient` — it just calls `ingredient
- * .withScaledQuantity(factor)` and lets polymorphism pick the right
- * override, so the returned ingredient is always the correct subtype.
+ * ไม่มี instanceof: เรียก ingredient.withScaledQuantity(factor) แล้ว
+ * Polymorphism คืน subclass ที่ถูกต้อง (Weighted/Volume/Count) ให้เอง
+ * ผลลัพธ์เป็น Recipe ใหม่ (id ใหม่) — เป็นแค่ผลคำนวณ ไม่ได้ถูกเก็บเข้า Manager
  */
 export class RecipeScaler {
   public static scale(recipe: Recipe, targetServings: number): Recipe {
     if (!Number.isFinite(targetServings) || targetServings <= 0) {
-      throw new Error(
-        `Target servings must be greater than 0 (got: ${targetServings}).`
-      );
+      throw new Error(`Target servings must be greater than 0 (got: ${targetServings}).`)
     }
 
-    const ingredients = recipe.getIngredients();
-    if (ingredients.length === 0) {
-      throw new Error("Cannot scale: recipe has no ingredients.");
-    }
-
-    const scaleFactor = targetServings / recipe.getServings();
-
+    const scaleFactor = targetServings / recipe.getServings()
     const builder = new RecipeBuilder()
       .setName(recipe.getName())
-      .setServings(targetServings);
+      .setServings(targetServings)
 
-    for (const ingredient of ingredients) {
-      builder.addIngredient(ingredient.withScaledQuantity(scaleFactor));
+    for (const ingredient of recipe.getIngredients()) {
+      builder.addIngredient(ingredient.withScaledQuantity(scaleFactor))
     }
-
-    return builder.build();
+    return builder.build()
   }
 }
