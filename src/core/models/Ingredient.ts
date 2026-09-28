@@ -1,19 +1,7 @@
-/**
- * Ingredient (base class)
- * -----------------------
- * OOP points on purpose here:
- * - Encapsulation: fields are `protected` (not `private`) — outside code
- *   still can't touch them directly, only through getName()/getQuantity()/
- *   getUnit()/setQuantity(). `protected` (rather than `private`) is what
- *   lets SolidIngredient/LiquidIngredient reach `this.name` etc. directly
- *   inside their own overridden methods below.
- * - Inheritance: SolidIngredient and LiquidIngredient both extend this
- *   class and reuse every field/getter/setter here — they only add their
- *   own display format.
- * - Polymorphism: getDisplayText() and withScaledQuantity() are both
- *   designed to be overridden — see SolidIngredient.ts / LiquidIngredient.ts.
- */
-export class Ingredient {
+export type IngredientType = 'weighted' | 'volume' | 'count'
+
+/** Base class for ingredients measured by weight, volume, or count. */
+export abstract class Ingredient {
   protected name: string;
   protected quantity: number;
   protected unit: string;
@@ -55,22 +43,16 @@ export class Ingredient {
     this.quantity = quantity;
   }
 
-  /** Polymorphism point #1 — overridden in SolidIngredient/LiquidIngredient. */
-  public getDisplayText(): string {
-    return `${this.name} - ${this.quantity} ${this.unit}`;
-  }
-
-  /**
-   * Polymorphism point #2 — used by RecipeScaler to produce a scaled copy.
-   * Overridden in each subclass so that scaling a SolidIngredient still
-   * returns a SolidIngredient (not a plain base Ingredient), without
-   * RecipeScaler ever needing an `instanceof` check to know which kind of
-   * ingredient it's holding.
-   */
-  public withScaledQuantity(factor: number): Ingredient {
+  protected validateScaleFactor(factor: number): void {
     if (!Number.isFinite(factor) || factor <= 0) {
       throw new Error(`Scale factor must be greater than 0 (got: ${factor}).`);
     }
-    return new Ingredient(this.name, this.quantity * factor, this.unit);
   }
+
+  public abstract getType(): IngredientType
+
+  public abstract getDisplayText(): string
+
+  /** Returns the same runtime subtype with a scaled quantity. */
+  public abstract withScaledQuantity(factor: number): Ingredient
 }

@@ -19,10 +19,14 @@ export function RecipeCard({
   const remainingCount = ingredients.length - visibleIngredients.length
 
   return (
-    <article className="recipe-card">
+    <article
+      id={`recipe-${recipe.getId()}`}
+      className="recipe-card"
+      tabIndex={-1}
+    >
       <div className="recipe-card__topbar">
         <span className="recipe-card__servings">
-          สำหรับ {recipe.getServings()} ที่
+          สำหรับ {recipe.getServings()} เสิร์ฟ
         </span>
 
         <div className="recipe-card__actions">

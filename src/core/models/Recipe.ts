@@ -15,16 +15,27 @@ import { Ingredient } from "./Ingredient";
  * enable by default.
  */
 export class Recipe {
+  private id: string;
   private name: string;
   private servings: number;
   private ingredients: Ingredient[];
 
-  constructor(name: string, servings: number, ingredients: Ingredient[]) {
+  constructor(
+    id: string,
+    name: string,
+    servings: number,
+    ingredients: Ingredient[],
+  ) {
+    this.id = id;
     this.name = name;
     this.servings = servings;
     this.ingredients = ingredients.map((ingredient) =>
       ingredient.withScaledQuantity(1)
     );
+  }
+
+  public getId(): string {
+    return this.id;
   }
 
   public getName(): string {

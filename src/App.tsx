@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Header } from './components/Header'
 import { RecipeCard } from './components/RecipeCard'
 import {
@@ -7,68 +7,92 @@ import {
 } from './components/RecipeForm'
 import { ScaleModal } from './components/ScaleModal'
 import { RecipeBuilder } from './core/builders/RecipeBuilder'
-import { SolidIngredient } from './core/models/Solidingredient'
-import { LiquidIngredient } from './core/models/Liquidingredient'
+import { IngredientFactory } from './core/factories/IngredientFactory'
 import type { Recipe } from './core/models/Recipe'
+import {
+  RecipeManager,
+  type RecipeSortOption,
+} from './core/services/RecipeManager'
 import './App.css'
 import {
   loadRecipes,
   saveRecipes,
 } from './storage/recipeStorage'
 import { DeleteConfirmModal } from './components/DeleteConfirmModal'
-
-type SortOption = 'latest' | 'name' | 'servings'
+import {
+  scrollToTarget,
+  type ScrollTarget,
+} from './utils/scrollToTarget'
 
 function App() {
   const [isCreateFormOpen, setIsCreateFormOpen] = useState(false)
-  const [recipes, setRecipes] = useState<Recipe[]>(
-    () => loadRecipes(),
+  const [recipeManager, setRecipeManager] = useState(
+    () => new RecipeManager(loadRecipes()),
   )
+  const recipes = recipeManager.getRecipes()
   const [searchTerm, setSearchTerm] = useState('')
-  const [sortOption, setSortOption] = useState<SortOption>('latest')
+  const [sortOption, setSortOption] = useState<RecipeSortOption>('latest')
   const [statusMessage, setStatusMessage] = useState('')
   const [recipeToScale, setRecipeToScale] = useState<Recipe | null>(null)
   const [recipeToEdit, setRecipeToEdit] = useState<Recipe | null>(null)
+  const pendingScrollTarget = useRef<ScrollTarget | null>(null)
+
   useEffect(() => {
-    saveRecipes(recipes)
-  }, [recipes])
+    saveRecipes(recipeManager.getRecipes())
+  }, [recipeManager])
+
+  useEffect(() => {
+    const target = pendingScrollTarget.current
+    if (!target) {
+      return
+    }
+
+    const animationFrame = window.requestAnimationFrame(() => {
+      scrollToTarget(target)
+      pendingScrollTarget.current = null
+    })
+
+    return () => window.cancelAnimationFrame(animationFrame)
+  }, [isCreateFormOpen, recipeManager, recipeToEdit])
+
   const [recipeToDelete, setRecipeToDelete] =
     useState<Recipe | null>(null)
 
   function handleSaveRecipe(draft: RecipeDraft) {
     try {
+      const editingRecipeId = recipeToEdit?.getId()
       const builder = new RecipeBuilder()
         .setName(draft.name)
         .setServings(draft.servings)
 
-      for (const ingredient of draft.ingredients) {
-        const recipeIngredient =
-          ingredient.type === 'solid'
-            ? new SolidIngredient(
-              ingredient.name,
-              ingredient.quantity,
-              ingredient.unit,
-            )
-            : new LiquidIngredient(
-              ingredient.name,
-              ingredient.quantity,
-              ingredient.unit,
-            )
+      if (editingRecipeId) {
+        builder.setId(editingRecipeId)
+      }
 
-        builder.addIngredient(recipeIngredient)
+      for (const ingredient of draft.ingredients) {
+        builder.addIngredient(
+          IngredientFactory.create(
+            ingredient.name,
+            ingredient.quantity,
+            ingredient.unit,
+          ),
+        )
       }
 
       const recipe = builder.build()
-      const isEditing = recipeToEdit !== null
+      const isEditing = editingRecipeId !== undefined
 
-      setRecipes((current) =>
+      if (editingRecipeId) {
+        pendingScrollTarget.current = {
+          type: 'recipe',
+          recipeId: editingRecipeId,
+        }
+      }
+
+      setRecipeManager((current) =>
         isEditing
-          ? current.map((currentRecipe) =>
-            currentRecipe === recipeToEdit
-              ? recipe
-              : currentRecipe,
-          )
-          : [...current, recipe],
+          ? current.updateRecipe(editingRecipeId, recipe)
+          : current.addRecipe(recipe),
       )
 
       setIsCreateFormOpen(false)
@@ -90,35 +114,23 @@ function App() {
   }
 
   function handleDeleteRecipe(recipeToDelete: Recipe) {
-    setRecipes((current) =>
-      current.filter((recipe) => recipe !== recipeToDelete),
+    setRecipeManager((current) =>
+      current.deleteRecipe(recipeToDelete.getId()),
     )
     setStatusMessage(`ลบสูตร “${recipeToDelete.getName()}” เรียบร้อยแล้ว`)
   }
 
-  const filteredRecipes = recipes.filter((recipe) =>
-    recipe
-      .getName()
-      .toLocaleLowerCase('th-TH')
-      .includes(searchTerm.trim().toLocaleLowerCase('th-TH')),
+  const filteredRecipes = recipeManager.searchRecipes(searchTerm)
+  const sortedRecipes = recipeManager.sortRecipes(
+    sortOption,
+    filteredRecipes,
   )
-
-  const sortedRecipes = [...filteredRecipes].sort((first, second) => {
-    if (sortOption === 'name') {
-      return first.getName().localeCompare(second.getName(), 'th')
-    }
-
-    if (sortOption === 'servings') {
-      return first.getServings() - second.getServings()
-    }
-
-    return recipes.indexOf(second) - recipes.indexOf(first)
-  })
 
   return (
     <div id="top" className="app">
       <Header
         onCreateRecipe={() => {
+          pendingScrollTarget.current = { type: 'form' }
           setRecipeToEdit(null)
           setIsCreateFormOpen(true)
           setStatusMessage('')
@@ -146,19 +158,23 @@ function App() {
         )}
 
         {isCreateFormOpen && (
-          <RecipeForm
-            key={
-              recipeToEdit
-                ? `edit-${recipes.indexOf(recipeToEdit)}`
-                : 'create'
-            }
-            initialRecipe={recipeToEdit ?? undefined}
-            onCancel={() => {
-              setIsCreateFormOpen(false)
-              setRecipeToEdit(null)
-            }}
-            onSave={handleSaveRecipe}
-          />
+          <div id="recipe-form-panel">
+            <RecipeForm
+              key={recipeToEdit?.getId() ?? 'create'}
+              initialRecipe={recipeToEdit ?? undefined}
+              onCancel={() => {
+                if (recipeToEdit) {
+                  pendingScrollTarget.current = {
+                    type: 'recipe',
+                    recipeId: recipeToEdit.getId(),
+                  }
+                }
+                setIsCreateFormOpen(false)
+                setRecipeToEdit(null)
+              }}
+              onSave={handleSaveRecipe}
+            />
+          </div>
         )}
 
         <section id="recipes">
@@ -179,7 +195,7 @@ function App() {
               <select
                 value={sortOption}
                 onChange={(event) =>
-                  setSortOption(event.target.value as SortOption)
+                  setSortOption(event.target.value as RecipeSortOption)
                 }
               >
                 <option value="latest">ล่าสุด</option>
@@ -201,11 +217,12 @@ function App() {
             </div>
           ) : (
             <div className="recipe-grid">
-              {sortedRecipes.map((recipe, index) => (
+              {sortedRecipes.map((recipe) => (
                 <RecipeCard
-                  key={`${recipe.getName()}-${index}`}
+                  key={recipe.getId()}
                   recipe={recipe}
                   onEdit={() => {
+                    pendingScrollTarget.current = { type: 'form' }
                     setRecipeToEdit(recipe)
                     setIsCreateFormOpen(true)
                     setStatusMessage('')
@@ -231,7 +248,7 @@ function App() {
             </li>
             <li>
               <h3>ปรับจำนวนเสิร์ฟ</h3>
-              <p>เลือกสูตรแล้วระบุจำนวนคน เพื่อดูปริมาณวัตถุดิบที่คำนวณใหม่</p>
+              <p>เลือกสูตรแล้วระบุจำนวนเสิร์ฟ เพื่อดูปริมาณวัตถุดิบที่คำนวณใหม่</p>
             </li>
           </ol>
           <p className="usage-guide__note">

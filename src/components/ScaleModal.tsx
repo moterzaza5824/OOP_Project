@@ -60,20 +60,20 @@ export function ScaleModal({ recipe, onClose }: ScaleModalProps) {
         <div className="scale-modal__controls">
           <div>
             <span>สูตรต้นฉบับ</span>
-            <strong>{recipe.getServings()} ที่</strong>
+            <strong>{recipe.getServings()} เสิร์ฟ</strong>
           </div>
 
           <span aria-hidden="true">→</span>
 
           <div>
-            <span>จำนวนที่ต้องการ</span>
+            <span>จำนวนเสิร์ฟที่ต้องการ</span>
 
             <div className="serving-stepper">
               <button type="button" onClick={decreaseServings}>
                 −
               </button>
 
-              <strong>{targetServings} ที่</strong>
+              <strong>{targetServings} เสิร์ฟ</strong>
 
               <button type="button" onClick={increaseServings}>
                 +

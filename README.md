@@ -6,7 +6,7 @@
 
 > **Current Stage: Final Integration / Testing**
 
-ฟังก์ชันหลักของระบบสามารถใช้งานผ่าน GUI ได้แล้ว ขณะนี้อยู่ในช่วงปรับโครงสร้าง OOP, ตรวจสอบ UX/UI, ทดสอบ edge cases และเตรียมเอกสารสำหรับนำเสนอ
+ฟังก์ชันหลักของระบบสามารถใช้งานผ่าน GUI ได้แล้ว โครงสร้าง OOP และ business logic ถูกแยกออกจาก React และมี automated tests สำหรับ core flow
 
 ### ฟังก์ชันที่ทำแล้ว
 
@@ -20,6 +20,10 @@
 - [x] Validation ข้อมูลพื้นฐาน
 - [x] ใช้ Builder Pattern ใน application flow
 - [x] ใช้ Encapsulation, Inheritance และ Polymorphism ใน core model
+- [x] เลือกประเภทวัตถุดิบอัตโนมัติจากหน่วย
+- [x] แยก CRUD / Search / Sort ไว้ใน RecipeManager
+- [x] รองรับการย้ายข้อมูล LocalStorage รูปแบบเดิม
+- [x] เลื่อนไปฟอร์มแก้ไขและกลับมายังสูตรเดิมอัตโนมัติ
 
 ## Core Features
 
@@ -38,9 +42,8 @@
 - ชื่อวัตถุดิบ
 - ปริมาณ
 - หน่วย
-- ประเภทของวัตถุดิบ
 
-รายการวัตถุดิบที่เพิ่มแล้วสามารถแก้ไขหรือลบได้ก่อนบันทึกสูตร
+ระบบเลือก `WeightedIngredient`, `VolumeIngredient` หรือ `CountIngredient` จากหน่วยโดยอัตโนมัติ ผู้ใช้ไม่ต้องเลือกประเภทเอง และสามารถแก้ไขหรือลบรายการก่อนบันทึกสูตรได้
 
 ### 3. Recipe Scaling
 ระบบสามารถคำนวณปริมาณวัตถุดิบใหม่จากจำนวนเสิร์ฟเป้าหมาย
@@ -65,6 +68,8 @@ Milk: 300 ml -> 900 ml
 ### 4. Local Storage
 สูตรอาหารถูกบันทึกไว้ใน LocalStorage ของ browser ทำให้ reload หน้าเว็บแล้วข้อมูลยังคงอยู่
 
+ข้อมูลใช้ schema version 2 และสามารถย้ายข้อมูลเดิมแบบ `solid/liquid` เป็นประเภทใหม่โดยอ้างอิงจากหน่วยได้อัตโนมัติ
+
 > หากล้างข้อมูลเว็บไซต์หรือ LocalStorage สูตรที่บันทึกไว้อาจหาย
 
 ## OOP Design
@@ -73,17 +78,56 @@ Milk: 300 ml -> 900 ml
 
 ```text
 Ingredient
-├── SolidIngredient
-└── LiquidIngredient
+├── WeightedIngredient
+├── VolumeIngredient
+└── CountIngredient
 
 Recipe
 
 RecipeBuilder
 └── builds Recipe
 
+IngredientFactory
+└── creates Ingredient subtype from unit
+
 RecipeScaler
 ├── uses Recipe
 └── uses RecipeBuilder
+
+RecipeManager
+└── manages Recipe[]
+```
+
+### Class Diagram
+
+```mermaid
+classDiagram
+  class Ingredient {
+    <<abstract>>
+    #name: string
+    #quantity: number
+    #unit: string
+    +getType() IngredientType
+    +getDisplayText() string
+    +withScaledQuantity(factor) Ingredient
+  }
+  class WeightedIngredient
+  class VolumeIngredient
+  class CountIngredient
+  class Recipe
+  class RecipeBuilder
+  class IngredientFactory
+  class RecipeScaler
+  class RecipeManager
+
+  Ingredient <|-- WeightedIngredient
+  Ingredient <|-- VolumeIngredient
+  Ingredient <|-- CountIngredient
+  Recipe "1" *-- "1..*" Ingredient
+  RecipeBuilder ..> Recipe : builds
+  IngredientFactory ..> Ingredient : creates
+  RecipeScaler ..> Recipe : scales
+  RecipeManager "1" o-- "0..*" Recipe : manages
 ```
 
 ### Encapsulation
@@ -94,6 +138,7 @@ RecipeScaler
 private name: string
 private servings: number
 private ingredients: Ingredient[]
+private id: string
 ```
 
 และเข้าถึงข้อมูลผ่าน methods เช่น
@@ -110,11 +155,12 @@ getIngredients()
 
 ```text
 Ingredient
-├── SolidIngredient
-└── LiquidIngredient
+├── WeightedIngredient
+├── VolumeIngredient
+└── CountIngredient
 ```
 
-`SolidIngredient` และ `LiquidIngredient` สืบทอดจาก `Ingredient`
+Subclass ทั้งสามสืบทอดข้อมูลและ validation ร่วมกันจาก abstract class `Ingredient` โดยแบ่งตามวิธีวัดที่ใช้จริงในระบบ
 
 ### Polymorphism
 
@@ -131,7 +177,7 @@ withScaledQuantity()
 ingredient.withScaledQuantity(scaleFactor)
 ```
 
-`RecipeScaler` ไม่จำเป็นต้องรู้ว่า object เป็น `SolidIngredient` หรือ `LiquidIngredient` แต่เรียก method ผ่านชนิด `Ingredient` ได้โดยตรง
+`RecipeScaler` ไม่จำเป็นต้องรู้ว่า object เป็น subclass ใด แต่เรียก method ผ่านชนิด `Ingredient` ได้โดยตรง และยังคง subtype เดิมหลัง scale
 
 ### Builder Pattern
 
@@ -156,6 +202,7 @@ src/
 │   ├── DeleteConfirmModal.tsx
 │   ├── Header.tsx
 │   ├── RecipeCard.tsx
+│   ├── RecipeForm.test.tsx
 │   ├── RecipeForm.tsx
 │   └── ScaleModal.tsx
 │
@@ -163,17 +210,27 @@ src/
 │   ├── builders/
 │   │   └── RecipeBuilder.ts
 │   │
-│   ├── models/
-│   │   ├── Ingredient.ts
-│   │   ├── Liquidingredient.ts
-│   │   ├── Recipe.ts
-│   │   └── Solidingredient.ts
+│   ├── factories/
+│   │   └── IngredientFactory.ts
 │   │
-│   └── services/
-│       └── RecipeScaler.ts
-│
+│   ├── models/
+│   │   ├── CountIngredient.ts
+│   │   ├── Ingredient.ts
+│   │   ├── Recipe.ts
+│   │   ├── VolumeIngredient.ts
+│   │   └── WeightedIngredient.ts
+│   │
+│   ├── services/
+│   │   ├── RecipeManager.ts
+│   │   └── RecipeScaler.ts
+│   │
+│   └── core.test.ts
 ├── storage/
 │   └── recipeStorage.ts
+│
+├── utils/
+│   ├── scrollToTarget.test.ts
+│   └── scrollToTarget.ts
 │
 ├── App.tsx
 ├── App.css
@@ -199,6 +256,7 @@ src/
 - Recipe / Ingredient models
 - Inheritance / Polymorphism
 - RecipeBuilder
+- RecipeManager interface design
 - Class Diagram
 - OOP explanation สำหรับ presentation
 
@@ -206,6 +264,8 @@ src/
 รับผิดชอบ
 
 - RecipeScaler
+- RecipeManager implementation
+- IngredientFactory / unit mapping
 - Scaling logic
 - Validation
 - Test cases
@@ -245,6 +305,12 @@ npm run dev
 npm run lint
 ```
 
+รัน automated tests
+
+```bash
+npm test
+```
+
 สร้าง production build
 
 ```bash
@@ -255,11 +321,11 @@ npm run build
 
 ก่อน Final Presentation ทีมกำลังตรวจและปรับปรุงเรื่องต่อไปนี้
 
-- [ ] ทบทวนความสมเหตุสมผลของ Ingredient inheritance
-- [ ] พิจารณาแยก business logic ออกจาก `App.tsx`
-- [ ] จัดทำ Class Diagram ให้ตรงกับ code ล่าสุด
-- [ ] จัดทำ Test Case Table และทดสอบ edge cases
-- [ ] ตรวจคำศัพท์ใน UI ให้สม่ำเสมอ
+- [x] ปรับ Ingredient inheritance ตามประเภทการวัด
+- [x] แยก CRUD / Search / Sort ออกจาก `App.tsx`
+- [x] จัดทำ Class Diagram ให้ตรงกับ code ล่าสุด
+- [x] เพิ่ม automated tests สำหรับ core logic และ storage migration
+- [x] ใช้คำว่า "จำนวนเสิร์ฟ" เป็นหลักใน GUI
 - [ ] ตรวจ responsive และ UX/UI
 - [ ] Final integration test
 - [ ] เตรียม Presentation และ Demo
@@ -288,4 +354,4 @@ Delete Recipe
 
 ## Notes
 
-โครงสร้าง OOP และ Class Diagram ต้องอ้างอิงจาก code เวอร์ชันล่าสุดก่อนนำเสนอ หากมีการ refactor class หรือเพิ่ม RecipeManager / Ingredient subtype ใหม่ ต้องอัปเดต README และ Diagram ให้ตรงกัน
+ก่อนนำเสนอให้รัน `npm test`, `npm run lint`, `npm run build` และทดลอง Final Demo Flow บน browser อีกครั้ง

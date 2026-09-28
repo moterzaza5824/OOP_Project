@@ -15,10 +15,9 @@ import { RecipeBuilder } from "../builders/RecipeBuilder";
  * calling `new Recipe(...)` directly, so the scaled Recipe goes through
  * the exact same construction/validation path as any hand-built Recipe.
  *
- * Notice this method never checks `instanceof SolidIngredient` or
- * `instanceof LiquidIngredient` — it just calls `ingredient
- * .withScaledQuantity(factor)` and lets polymorphism pick the right
- * override, so the returned ingredient is always the correct subtype.
+ * This method never checks a concrete Ingredient subtype. It calls
+ * `ingredient.withScaledQuantity(factor)` and lets polymorphism select the
+ * correct override, so the returned ingredient keeps its runtime subtype.
  */
 export class RecipeScaler {
   public static scale(recipe: Recipe, targetServings: number): Recipe {
@@ -36,6 +35,7 @@ export class RecipeScaler {
     const scaleFactor = targetServings / recipe.getServings();
 
     const builder = new RecipeBuilder()
+      .setId(recipe.getId())
       .setName(recipe.getName())
       .setServings(targetServings);
 

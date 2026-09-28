@@ -1,13 +1,15 @@
 import { useState, type FormEvent } from 'react'
+import {
+    INGREDIENT_UNITS,
+    type IngredientUnit,
+} from '../core/factories/IngredientFactory'
 import type { Recipe } from '../core/models/Recipe'
-import { LiquidIngredient } from '../core/models/Liquidingredient'
 
 export type IngredientDraft = {
     id: string
     name: string
     quantity: number
-    unit: string
-    type: 'solid' | 'liquid'
+    unit: IngredientUnit
 }
 
 export type RecipeDraft = {
@@ -22,18 +24,6 @@ type RecipeFormProps = {
     onSave: (recipe: RecipeDraft) => void
 }
 
-const INGREDIENT_UNITS = [
-    'กรัม',
-    'กิโลกรัม',
-    'มิลลิลิตร',
-    'ลิตร',
-    'ชิ้น',
-    'ฟอง',
-    'ช้อนชา',
-    'ช้อนโต๊ะ',
-    'ถ้วย',
-]
-
 function createIngredientDrafts(
     recipe?: Recipe,
 ): IngredientDraft[] {
@@ -45,11 +35,7 @@ function createIngredientDrafts(
         id: crypto.randomUUID(),
         name: ingredient.getName(),
         quantity: ingredient.getQuantity(),
-        unit: ingredient.getUnit(),
-        type:
-            ingredient instanceof LiquidIngredient
-                ? 'liquid'
-                : 'solid',
+        unit: ingredient.getUnit() as IngredientUnit,
     }))
 }
 
@@ -66,8 +52,7 @@ export function RecipeForm({
     )
     const [ingredientName, setIngredientName] = useState('')
     const [quantity, setQuantity] = useState('')
-    const [unit, setUnit] = useState('กรัม')
-    const [type, setType] = useState<'solid' | 'liquid'>('solid')
+    const [unit, setUnit] = useState<IngredientUnit>('กรัม')
     const [ingredients, setIngredients] = useState<IngredientDraft[]>(
         () => createIngredientDrafts(initialRecipe),
     )
@@ -93,7 +78,6 @@ export function RecipeForm({
                 name: ingredientName.trim(),
                 quantity: parsedQuantity,
                 unit,
-                type,
             },
         ])
 
@@ -251,7 +235,9 @@ export function RecipeForm({
                                 <select
                                     id="ingredient-unit"
                                     value={unit}
-                                    onChange={(event) => setUnit(event.target.value)}
+                                    onChange={(event) =>
+                                        setUnit(event.target.value as IngredientUnit)
+                                    }
                                 >
                                     {INGREDIENT_UNITS.map((ingredientUnit) => (
                                         <option key={ingredientUnit} value={ingredientUnit}>
@@ -263,28 +249,6 @@ export function RecipeForm({
                         </div>
 
                         <div className="ingredient-form__actions">
-                            <div className="ingredient-type">
-                                <label>
-                                    <input
-                                        type="radio"
-                                        name="ingredient-type"
-                                        checked={type === 'solid'}
-                                        onChange={() => setType('solid')}
-                                    />
-                                    ของแข็ง
-                                </label>
-
-                                <label>
-                                    <input
-                                        type="radio"
-                                        name="ingredient-type"
-                                        checked={type === 'liquid'}
-                                        onChange={() => setType('liquid')}
-                                    />
-                                    ของเหลว
-                                </label>
-                            </div>
-
                             <button type="button" onClick={addIngredient}>
                                 + เพิ่มวัตถุดิบ
                             </button>
@@ -339,7 +303,7 @@ export function RecipeForm({
                                                 aria-label={`หน่วยของ ${ingredient.name}`}
                                                 onChange={(event) =>
                                                     updateIngredient(ingredient.id, {
-                                                        unit: event.target.value,
+                                                        unit: event.target.value as IngredientUnit,
                                                     })
                                                 }
                                             >
@@ -353,36 +317,6 @@ export function RecipeForm({
                                     </div>
 
                                     <div className="ingredient-preview__actions">
-                                        <div className="ingredient-type">
-                                            <label>
-                                                <input
-                                                    type="radio"
-                                                    name={`ingredient-type-${ingredient.id}`}
-                                                    checked={ingredient.type === 'solid'}
-                                                    onChange={() =>
-                                                        updateIngredient(ingredient.id, {
-                                                            type: 'solid',
-                                                        })
-                                                    }
-                                                />
-                                                ของแข็ง
-                                            </label>
-
-                                            <label>
-                                                <input
-                                                    type="radio"
-                                                    name={`ingredient-type-${ingredient.id}`}
-                                                    checked={ingredient.type === 'liquid'}
-                                                    onChange={() =>
-                                                        updateIngredient(ingredient.id, {
-                                                            type: 'liquid',
-                                                        })
-                                                    }
-                                                />
-                                                ของเหลว
-                                            </label>
-                                        </div>
-
                                         <button
                                             type="button"
                                             aria-label={`ลบ ${ingredient.name}`}

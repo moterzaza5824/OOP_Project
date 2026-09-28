@@ -16,14 +16,23 @@ import { Ingredient } from "../models/Ingredient";
  *   new RecipeBuilder()
  *     .setName("Pancake")
  *     .setServings(2)
- *     .addIngredient(new SolidIngredient("Flour", 200, "g"))
- *     .addIngredient(new LiquidIngredient("Milk", 300, "ml"))
+ *     .addIngredient(IngredientFactory.create("Flour", 200, "กรัม"))
+ *     .addIngredient(IngredientFactory.create("Milk", 300, "มิลลิลิตร"))
  *     .build();
  */
 export class RecipeBuilder {
+  private id: string | null = null;
   private name: string | null = null;
   private servings: number | null = null;
   private ingredients: Ingredient[] = [];
+
+  public setId(id: string): this {
+    if (!id || id.trim().length === 0) {
+      throw new Error('Recipe id must not be empty.');
+    }
+    this.id = id.trim();
+    return this;
+  }
 
   public setName(name: string): this {
     if (!name || name.trim().length === 0) {
@@ -42,8 +51,8 @@ export class RecipeBuilder {
   }
 
   /**
-   * Accepts any Ingredient (base, SolidIngredient, or LiquidIngredient —
-   * polymorphism means this method doesn't need to know or care which).
+   * Accepts any Ingredient subtype. Polymorphism means this method doesn't
+   * need to know whether it is measured by weight, volume, or count.
    * Each Ingredient already validated itself in its own constructor.
    */
   public addIngredient(ingredient: Ingredient): this {
@@ -65,6 +74,11 @@ export class RecipeBuilder {
         "Cannot build Recipe: add at least one ingredient before build()."
       );
     }
-    return new Recipe(this.name, this.servings, this.ingredients);
+    return new Recipe(
+      this.id ?? crypto.randomUUID(),
+      this.name,
+      this.servings,
+      this.ingredients,
+    );
   }
 }
