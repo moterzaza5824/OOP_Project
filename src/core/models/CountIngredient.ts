@@ -1,5 +1,9 @@
 import { Ingredient, type IngredientType } from './Ingredient'
 
+/**
+ * วัตถุดิบที่วัดเป็นจำนวนชิ้น เช่น ฟอง ลูก หรือตัว
+ * ค่าหลังปรับสัดส่วนอาจเป็นทศนิยมได้ เช่น ไข่ 1.5 ฟอง
+ */
 export class CountIngredient extends Ingredient {
   public override getType(): IngredientType {
     return 'count'

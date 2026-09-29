@@ -2,7 +2,12 @@ import type { Recipe } from '../models/Recipe'
 
 export type RecipeSortOption = 'latest' | 'name' | 'servings'
 
-/** Immutable collection service used by React for recipe operations. */
+/**
+ * Service สำหรับจัดการชุดสูตรอาหาร เช่น เพิ่ม แก้ไข ลบ ค้นหา และเรียงลำดับ
+ *
+ * คลาสนี้ทำงานแบบ immutable: ทุกการเปลี่ยนแปลงจะคืน RecipeManager ตัวใหม่แทน
+ * การแก้ไขอาร์เรย์เดิม จึงนำไปใช้กับ state ของ React ได้อย่างปลอดภัยและคาดเดาง่าย
+ */
 export class RecipeManager {
   private readonly recipes: Recipe[]
 

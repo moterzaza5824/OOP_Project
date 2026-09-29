@@ -2,22 +2,11 @@ import { Recipe } from "../models/Recipe";
 import { RecipeBuilder } from "../builders/RecipeBuilder";
 
 /**
- * RecipeScaler
- * ------------
- * Single Responsibility: turn an existing Recipe into a new Recipe scaled
- * to a target number of servings. Does not mutate the Recipe passed in.
+ * Service สำหรับสร้างสูตรใหม่ตามจำนวนเสิร์ฟที่ต้องการ โดยไม่แก้ไขสูตรต้นฉบับ
  *
- * Formula:
- *     scaleFactor  = targetServings / originalServings
- *     newQuantity  = originalQuantity × scaleFactor
- *
- * Reuses RecipeBuilder to assemble the result (composition) instead of
- * calling `new Recipe(...)` directly, so the scaled Recipe goes through
- * the exact same construction/validation path as any hand-built Recipe.
- *
- * This method never checks a concrete Ingredient subtype. It calls
- * `ingredient.withScaledQuantity(factor)` and lets polymorphism select the
- * correct override, so the returned ingredient keeps its runtime subtype.
+ * ใช้สัดส่วน `จำนวนเสิร์ฟใหม่ / จำนวนเสิร์ฟเดิม` คูณปริมาณวัตถุดิบทุกตัว แล้วใช้
+ * RecipeBuilder ประกอบผลลัพธ์อีกครั้ง การเรียก withScaledQuantity() ผ่านคลาสแม่
+ * ทำให้วัตถุดิบแต่ละชนิดปรับปริมาณด้วย implementation ของตัวเอง (polymorphism)
  */
 export class RecipeScaler {
   public static scale(recipe: Recipe, targetServings: number): Recipe {

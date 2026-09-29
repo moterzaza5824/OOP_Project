@@ -2,23 +2,11 @@ import { Recipe } from "../models/Recipe";
 import { Ingredient } from "../models/Ingredient";
 
 /**
- * RecipeBuilder
- * -------------
- * THE Builder Pattern class for this project.
+ * Builder สำหรับประกอบ Recipe ทีละส่วน
  *
- * Why a Builder instead of `new Recipe(name, servings, ingredients)`
- * directly? A Recipe has a variable-length list of ingredients added one
- * at a time from a form. The Builder lets us construct step by step
- * (setName → setServings → addIngredient → ... → build), validating each
- * piece as it arrives, and only producing a Recipe once everything is
- * confirmed valid. Each method returns `this` for fluent chaining:
- *
- *   new RecipeBuilder()
- *     .setName("Pancake")
- *     .setServings(2)
- *     .addIngredient(IngredientFactory.create("Flour", 200, "กรัม"))
- *     .addIngredient(IngredientFactory.create("Milk", 300, "มิลลิลิตร"))
- *     .build();
+ * เหมาะกับข้อมูลจากฟอร์มซึ่งเพิ่มวัตถุดิบได้หลายรายการ โดยแต่ละเมธอดตรวจสอบค่า
+ * และคืน `this` เพื่อให้เรียกต่อกันแบบ fluent interface ได้ ส่วน build() จะสร้าง
+ * Recipe ก็ต่อเมื่อมีชื่อ จำนวนเสิร์ฟ และวัตถุดิบอย่างน้อยหนึ่งรายการครบแล้ว
  */
 export class RecipeBuilder {
   private id: string | null = null;

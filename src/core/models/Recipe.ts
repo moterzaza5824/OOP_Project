@@ -1,18 +1,11 @@
 import { Ingredient } from "./Ingredient";
 
 /**
- * Recipe
- * ------
- * @internal Should only be constructed via RecipeBuilder.build() — that's
- * the Builder Pattern requirement of the project (see RecipeBuilder.ts).
- * By the time you HAVE a Recipe object, it's guaranteed valid because
- * RecipeBuilder already checked everything before calling this
- * constructor.
+ * เอนทิตีที่แทนสูตรอาหารหนึ่งสูตร
  *
- * Fields are declared explicitly (not via constructor parameter-property
- * shorthand) so this compiles cleanly under Vite's newer
- * `erasableSyntaxOnly` TypeScript setting, which some project templates
- * enable by default.
+ * เก็บรหัส ชื่อ จำนวนเสิร์ฟ และรายการวัตถุดิบไว้ภายใน โดยทำสำเนาวัตถุดิบทั้งตอน
+ * รับเข้าและส่งออก เพื่อป้องกันโค้ดภายนอกแก้ไขสถานะภายในของสูตรโดยไม่ตั้งใจ
+ * ปกติควรสร้างผ่าน RecipeBuilder เพื่อให้ข้อมูลผ่านการตรวจสอบครบถ้วนก่อนใช้งาน
  */
 export class Recipe {
   private id: string;

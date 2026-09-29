@@ -10,6 +10,7 @@ import { RecipeManager } from './services/RecipeManager'
 import { RecipeScaler } from './services/RecipeScaler'
 import { loadRecipes, saveRecipes } from '../storage/recipeStorage'
 
+/** Storage จำลองในหน่วยความจำสำหรับทดสอบ โดยไม่ต้องใช้ localStorage ของเบราว์เซอร์ */
 class MemoryStorage implements Storage {
   private readonly values = new Map<string, string>()
 

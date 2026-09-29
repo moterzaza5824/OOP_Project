@@ -37,6 +37,12 @@ export function isIngredientUnit(unit: string): unit is IngredientUnit {
   return Object.hasOwn(UNIT_TYPES, unit)
 }
 
+/**
+ * Factory สำหรับสร้างวัตถุดิบให้ตรงกับหน่วยที่ผู้ใช้เลือก
+ *
+ * ผู้เรียกไม่จำเป็นต้องรู้ว่าควร new คลาสลูกตัวใด เพราะ Factory จะแปลงหน่วยเป็น
+ * ประเภท weighted, volume หรือ count แล้วคืน Ingredient ที่เหมาะสมให้เอง
+ */
 export class IngredientFactory {
   public static getTypeForUnit(unit: string): IngredientType {
     if (!isIngredientUnit(unit)) {

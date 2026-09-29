@@ -1,6 +1,12 @@
 export type IngredientType = 'weighted' | 'volume' | 'count'
 
-/** Base class for ingredients measured by weight, volume, or count. */
+/**
+ * คลาสแม่แบบนามธรรมของวัตถุดิบทุกชนิด
+ *
+ * เก็บข้อมูลพื้นฐานที่วัตถุดิบทุกประเภทใช้ร่วมกัน ได้แก่ ชื่อ ปริมาณ และหน่วย
+ * พร้อมตรวจสอบความถูกต้องของข้อมูลจากจุดเดียว ส่วนคลาสลูกมีหน้าที่กำหนดชนิด
+ * รูปแบบข้อความที่แสดง และวิธีสร้างวัตถุดิบใหม่เมื่อปรับสัดส่วน
+ */
 export abstract class Ingredient {
   protected name: string;
   protected quantity: number;

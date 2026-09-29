@@ -1,5 +1,9 @@
 import { Ingredient, type IngredientType } from './Ingredient'
 
+/**
+ * วัตถุดิบที่วัดปริมาณด้วยปริมาตร เช่น มิลลิลิตร ลิตร หรือช้อน
+ * แยกจากวัตถุดิบชนิดอื่นเพื่อให้แสดงประเภทและปรับปริมาณได้แบบ polymorphism
+ */
 export class VolumeIngredient extends Ingredient {
   public override getType(): IngredientType {
     return 'volume'

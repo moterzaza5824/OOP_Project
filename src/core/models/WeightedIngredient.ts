@@ -1,5 +1,9 @@
 import { Ingredient, type IngredientType } from './Ingredient'
 
+/**
+ * วัตถุดิบที่วัดปริมาณด้วยน้ำหนัก เช่น กรัมหรือกิโลกรัม
+ * สืบทอดการตรวจสอบข้อมูลจาก Ingredient และคืนออบเจ็กต์ชนิดเดิมเมื่อปรับสัดส่วน
+ */
 export class WeightedIngredient extends Ingredient {
   public override getType(): IngredientType {
     return 'weighted'
