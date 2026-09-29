@@ -3,6 +3,7 @@ import { Ingredient, type IngredientType } from '../models/Ingredient'
 import { VolumeIngredient } from '../models/VolumeIngredient'
 import { WeightedIngredient } from '../models/WeightedIngredient'
 
+// รายการหน่วยทั้งหมดที่ผู้ใช้เลือกได้จากฟอร์ม
 export const INGREDIENT_UNITS = [
   'กรัม',
   'กิโลกรัม',
@@ -17,8 +18,10 @@ export const INGREDIENT_UNITS = [
   'ตัว',
 ] as const
 
+// สร้าง union type ของหน่วยจาก array ด้านบน ลดโอกาสที่ชนิดข้อมูลไม่ตรงกัน
 export type IngredientUnit = (typeof INGREDIENT_UNITS)[number]
 
+// จับคู่แต่ละหน่วยกับประเภทวัตถุดิบที่ Factory ต้องสร้าง
 const UNIT_TYPES: Record<IngredientUnit, IngredientType> = {
   'กรัม': 'weighted',
   'กิโลกรัม': 'weighted',
@@ -34,6 +37,7 @@ const UNIT_TYPES: Record<IngredientUnit, IngredientType> = {
 }
 
 export function isIngredientUnit(unit: string): unit is IngredientUnit {
+  // ตรวจสอบว่าหน่วยที่รับมามีอยู่ในตาราง UNIT_TYPES จริง
   return Object.hasOwn(UNIT_TYPES, unit)
 }
 
@@ -45,10 +49,12 @@ export function isIngredientUnit(unit: string): unit is IngredientUnit {
  */
 export class IngredientFactory {
   public static getTypeForUnit(unit: string): IngredientType {
+    // ปฏิเสธหน่วยที่ระบบไม่รองรับ แทนการเดาประเภทให้ผิด
     if (!isIngredientUnit(unit)) {
       throw new Error(`Unsupported ingredient unit: ${unit}`)
     }
 
+    // คืนประเภท weighted, volume หรือ count จากตารางจับคู่
     return UNIT_TYPES[unit]
   }
 
@@ -57,12 +63,16 @@ export class IngredientFactory {
     quantity: number,
     unit: string,
   ): Ingredient {
+    // ตรวจประเภทจากหน่วย แล้วซ่อนรายละเอียดการ new subclass ไว้ใน Factory
     switch (IngredientFactory.getTypeForUnit(unit)) {
       case 'weighted':
+        // หน่วยน้ำหนัก เช่น กรัมและกิโลกรัม
         return new WeightedIngredient(name, quantity, unit)
       case 'volume':
+        // หน่วยปริมาตร เช่น มิลลิลิตร ลิตร และช้อน
         return new VolumeIngredient(name, quantity, unit)
       case 'count':
+        // หน่วยนับ เช่น ชิ้น ฟอง ลูก และตัว
         return new CountIngredient(name, quantity, unit)
     }
   }
